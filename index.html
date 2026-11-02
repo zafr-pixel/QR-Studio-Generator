@@ -119,7 +119,7 @@
   }
   .hint{font-size:0.75rem;color:#93A1B2;margin-top:6px;line-height:1.5;}
 
-  textarea, input[type="text"], select{
+  textarea, input[type="text"], select, input[type="file"]{
     width:100%;
     background:var(--ink-light);
     border:1px solid var(--line-dark);
@@ -130,6 +130,7 @@
     border-radius:5px;
     resize:vertical;
   }
+  input[type="file"]{padding:8px;font-size:0.8125rem;}
   select{appearance:none;-webkit-appearance:none;
     background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0l5 6 5-6z' fill='%23B9C2CE'/></svg>");
     background-repeat:no-repeat;
@@ -178,7 +179,8 @@
   .btn-reset:hover{background:var(--ink-light);border-color:var(--ink-light);}
 
   /* ---------- preview ---------- */
-  .preview-wrap{
+  .preview-wrap{width:100%;}
+  .view-panel{
     display:flex;
     flex-direction:column;
     align-items:center;
@@ -251,8 +253,8 @@
   .heic-actions button{
     font-size:0.8125rem;font-weight:600;padding:8px 14px;border-radius:5px;cursor:pointer;
   }
-  #heicUsePng{background:var(--ink);color:#fff;border:1px solid var(--ink);}
-  #heicClose{background:none;color:var(--ink-soft);border:1px solid var(--line-light);}
+  .btn-heic-primary{background:var(--ink);color:#fff;border:1px solid var(--ink);}
+  .btn-heic-secondary{background:none;color:var(--ink-soft);border:1px solid var(--line-light);}
 
   @media (prefers-reduced-motion:reduce){
     *{transition:none !important;animation:none !important;}
@@ -377,7 +379,41 @@
     </section>
 
     <section class="ctrl-group">
-      <h2 class="ctrl-title"><span class="tick"></span>Warna QR</h2>
+      <h2 class="ctrl-title"><span class="tick"></span>Logo di tengah QR</h2>
+      <div class="field">
+        <label for="logoInput">Unggah logo</label>
+        <input type="file" id="logoInput" accept="image/*">
+        <p class="hint">Format PNG dengan latar transparan biasanya memberi hasil paling rapi.</p>
+      </div>
+      <div id="logoControls" hidden>
+        <div class="field">
+          <div class="field-head">
+            <label for="logoSize">Ukuran logo</label>
+            <span class="readout" id="logoSizeReadout"></span>
+          </div>
+          <input type="range" id="logoSize" min="10" max="35" step="1">
+        </div>
+        <div class="field">
+          <div class="field-head">
+            <label for="logoOpacity">Opasitas logo</label>
+            <span class="readout" id="logoOpacityReadout"></span>
+          </div>
+          <input type="range" id="logoOpacity" min="10" max="100" step="5">
+        </div>
+        <div class="field">
+          <div class="field-head">
+            <label for="logoPadding">Padding latar logo</label>
+            <span class="readout" id="logoPaddingReadout"></span>
+          </div>
+          <input type="range" id="logoPadding" min="0" max="24" step="2">
+        </div>
+        <p class="hint" id="logoLevelHint" hidden>Toleransi kesalahan otomatis dinaikkan ke Tinggi supaya kode tetap bisa dipindai dengan logo di tengah.</p>
+        <button type="button" class="btn-reset" id="logoRemove">Hapus logo</button>
+      </div>
+    </section>
+
+    <section class="ctrl-group">
+      <h2 class="ctrl-title"><span class="tick"></span>Warna dan ukuran QR</h2>
       <div class="field">
         <label for="qrFg">Warna kode QR</label>
         <div class="swatch-row">
@@ -392,10 +428,6 @@
           <span class="readout" id="qrBgLabel"></span>
         </div>
       </div>
-    </section>
-
-    <section class="ctrl-group">
-      <h2 class="ctrl-title"><span class="tick"></span>Ukuran dan tata letak</h2>
       <div class="field">
         <div class="field-head">
           <label for="qrSize">Ukuran QR</label>
@@ -403,6 +435,10 @@
         </div>
         <input type="range" id="qrSize" min="140" max="560" step="10">
       </div>
+    </section>
+
+    <section class="ctrl-group">
+      <h2 class="ctrl-title"><span class="tick"></span>Tata letak kartu</h2>
       <div class="field">
         <label for="sheetBg">Warna latar kartu</label>
         <div class="swatch-row">
@@ -427,29 +463,31 @@
 
   <section class="preview-wrap">
 
-    <div class="sheet" id="previewSheet">
-      <span class="crop crop-tl"></span>
-      <span class="crop crop-tr"></span>
-      <span class="crop crop-bl"></span>
-      <span class="crop crop-br"></span>
-      <div class="sheet-title" id="titlePreview"></div>
-      <canvas id="qrCanvas"></canvas>
-      <div class="sheet-tagline" id="taglinePreview"></div>
-    </div>
+    <div class="view-panel">
+      <div class="sheet" id="previewSheet">
+        <span class="crop crop-tl"></span>
+        <span class="crop crop-tr"></span>
+        <span class="crop crop-bl"></span>
+        <span class="crop crop-br"></span>
+        <div class="sheet-title" id="titlePreview"></div>
+        <canvas id="qrCanvas"></canvas>
+        <div class="sheet-tagline" id="taglinePreview"></div>
+      </div>
 
-    <div class="toolbar">
-      <button type="button" class="btn-download" id="downloadPng">Unduh PNG</button>
-      <button type="button" class="btn-download" id="downloadJpg">Unduh JPG</button>
-      <button type="button" class="btn-download" id="downloadHeic" aria-describedby="heicNote">Unduh HEIC</button>
-      <button type="button" class="btn-download" id="downloadPdf">Unduh PDF</button>
-      <button type="button" class="btn-download" id="downloadHtml">Unduh HTML</button>
-    </div>
+      <div class="toolbar">
+        <button type="button" class="btn-download" id="downloadPng">Unduh PNG</button>
+        <button type="button" class="btn-download" id="downloadJpg">Unduh JPG</button>
+        <button type="button" class="btn-download" id="downloadHeic" aria-describedby="heicNote">Unduh HEIC</button>
+        <button type="button" class="btn-download" id="downloadPdf">Unduh PDF</button>
+        <button type="button" class="btn-download" id="downloadHtml">Unduh HTML</button>
+      </div>
 
-    <div class="heic-note" id="heicNote" hidden>
-      <p>Browser belum bisa menyandikan gambar ke format HEIC secara langsung karena keterbatasan encoder dan lisensi HEVC. Unduh sebagai PNG dengan kualitas yang sama, lalu konversi ke HEIC lewat aplikasi Foto di iPhone atau Mac, atau konverter HEIC pilihan Anda bila benar-benar diperlukan.</p>
-      <div class="heic-actions">
-        <button type="button" id="heicUsePng">Unduh PNG saja</button>
-        <button type="button" id="heicClose">Tutup</button>
+      <div class="heic-note" id="heicNote" hidden>
+        <p>Browser belum bisa menyandikan gambar ke format HEIC secara langsung karena keterbatasan encoder dan lisensi HEVC. Unduh sebagai PNG dengan kualitas yang sama, lalu konversi ke HEIC lewat aplikasi Foto di iPhone atau Mac, atau konverter HEIC pilihan Anda bila benar-benar diperlukan.</p>
+        <div class="heic-actions">
+          <button type="button" class="btn-heic-primary" id="heicUsePng">Unduh PNG saja</button>
+          <button type="button" class="btn-heic-secondary" id="heicClose">Tutup</button>
+        </div>
       </div>
     </div>
 
@@ -485,17 +523,36 @@
     taglineColor:'#5B6B82',
     taglineSize:16,
     sheetBg:'#FFFFFF',
-    sheetPadding:40
+    sheetPadding:40,
+    logoSize:22,
+    logoOpacity:100,
+    logoPadding:8
   };
 
   var FIELD_IDS = ['qrContent','qrLevel','qrFg','qrBg','qrSize',
     'titleText','titleFont','titleColor','titleSize',
     'taglineText','taglineFont','taglineColor','taglineSize',
-    'sheetBg','sheetPadding'];
+    'sheetBg','sheetPadding',
+    'logoSize','logoOpacity','logoPadding'];
 
   var qr = null;
+  var logoImage = null;
+  var logoEnabled = false;
 
   function el(id){ return document.getElementById(id); }
+
+  function pathRoundedSquare(ctx,x,y,w,h){
+    var r=Math.min(w,h)*0.18;
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+
+  /* ---------- form defaults / readouts ---------- */
 
   function applyDefaultsToForm(){
     Object.keys(DEFAULTS).forEach(function(key){
@@ -509,6 +566,9 @@
     el('titleSizeReadout').textContent = el('titleSize').value + ' px';
     el('taglineSizeReadout').textContent = el('taglineSize').value + ' px';
     el('sheetPaddingReadout').textContent = el('sheetPadding').value + ' px';
+    el('logoSizeReadout').textContent = el('logoSize').value + '%';
+    el('logoOpacityReadout').textContent = el('logoOpacity').value + '%';
+    el('logoPaddingReadout').textContent = el('logoPadding').value + ' px';
   }
 
   function syncSwatchLabels(){
@@ -519,62 +579,22 @@
     el('sheetBgLabel').textContent = el('sheetBg').value.toUpperCase();
   }
 
-  function render(){
-    var content = el('qrContent').value.trim() || DEFAULTS.qrContent;
-    qr.value = content;
-    qr.level = el('qrLevel').value;
-    qr.size = parseInt(el('qrSize').value, 10);
-    qr.background = el('qrBg').value;
-    qr.foreground = el('qrFg').value;
+  /* ---------- logo overlay ---------- */
 
-    var titleText = el('titleText').value;
-    var titleEl = el('titlePreview');
-    titleEl.textContent = titleText;
-    titleEl.style.display = titleText.trim() ? 'block' : 'none';
-    titleEl.style.color = el('titleColor').value;
-    titleEl.style.fontFamily = '"' + el('titleFont').value + '", ' + (FONT_FALLBACK[el('titleFont').value] || 'sans-serif');
-    titleEl.style.fontWeight = '600';
-    titleEl.style.fontSize = el('titleSize').value + 'px';
-
-    var taglineText = el('taglineText').value;
-    var taglineEl = el('taglinePreview');
-    taglineEl.textContent = taglineText;
-    taglineEl.style.display = taglineText.trim() ? 'block' : 'none';
-    taglineEl.style.color = el('taglineColor').value;
-    taglineEl.style.fontFamily = '"' + el('taglineFont').value + '", ' + (FONT_FALLBACK[el('taglineFont').value] || 'sans-serif');
-    taglineEl.style.fontSize = el('taglineSize').value + 'px';
-
-    var sheet = el('previewSheet');
-    sheet.style.background = el('sheetBg').value;
-    sheet.style.padding = el('sheetPadding').value + 'px';
-
-    syncReadouts();
-    syncSwatchLabels();
+  function drawLogoOverlay(ctx, canvasSize, img, sizePct, opacity, padding, bgColor){
+    var logoSize = canvasSize*(sizePct/100);
+    var bgSize = logoSize + padding*2;
+    var bx=(canvasSize-bgSize)/2, by=(canvasSize-bgSize)/2;
+    ctx.save();
+    ctx.fillStyle = bgColor;
+    pathRoundedSquare(ctx, bx, by, bgSize, bgSize);
+    ctx.fill();
+    ctx.globalAlpha = opacity;
+    ctx.drawImage(img, (canvasSize-logoSize)/2, (canvasSize-logoSize)/2, logoSize, logoSize);
+    ctx.restore();
   }
 
-  function bindEvents(){
-    FIELD_IDS.forEach(function(id){
-      var node = el(id);
-      node.addEventListener('input', render);
-      node.addEventListener('change', render);
-    });
-
-    el('resetBtn').addEventListener('click', function(){
-      applyDefaultsToForm();
-      render();
-    });
-
-    el('downloadPng').addEventListener('click', function(){ exportImage('png'); });
-    el('downloadJpg').addEventListener('click', function(){ exportImage('jpeg'); });
-    el('downloadPdf').addEventListener('click', exportPdf);
-    el('downloadHtml').addEventListener('click', exportHtmlFile);
-    el('downloadHeic').addEventListener('click', function(){ el('heicNote').hidden = false; });
-    el('heicClose').addEventListener('click', function(){ el('heicNote').hidden = true; });
-    el('heicUsePng').addEventListener('click', function(){
-      el('heicNote').hidden = true;
-      exportImage('png');
-    });
-  }
+  /* ---------- text measuring helpers ---------- */
 
   function wrapText(ctx, text, maxWidth){
     var words = String(text).trim().split(/\s+/).filter(Boolean);
@@ -600,6 +620,65 @@
     }, 0);
   }
 
+  function loadFonts(specs){
+    try{
+      var jobs = specs.map(function(spec){ return document.fonts.load(spec); });
+      jobs.push(document.fonts.ready);
+      return Promise.all(jobs).catch(function(){});
+    }catch(e){
+      return Promise.resolve();
+    }
+  }
+
+  /* ---------- main render ---------- */
+
+  function render(){
+    var content = el('qrContent').value.trim() || DEFAULTS.qrContent;
+    qr.value = content;
+    qr.level = el('qrLevel').value;
+    qr.size = parseInt(el('qrSize').value, 10);
+    qr.background = el('qrBg').value;
+    qr.foreground = el('qrFg').value;
+
+    if(logoEnabled && logoImage){
+      drawLogoOverlay(
+        el('qrCanvas').getContext('2d'), qr.size, logoImage,
+        parseInt(el('logoSize').value,10),
+        parseInt(el('logoOpacity').value,10)/100,
+        parseInt(el('logoPadding').value,10),
+        el('qrBg').value
+      );
+    }
+
+    var titleText = el('titleText').value;
+    var titleEl = el('titlePreview');
+    titleEl.textContent = titleText;
+    titleEl.style.display = titleText.trim() ? 'block' : 'none';
+    titleEl.style.color = el('titleColor').value;
+    titleEl.style.fontFamily = '"' + el('titleFont').value + '", ' + (FONT_FALLBACK[el('titleFont').value] || 'sans-serif');
+    titleEl.style.fontWeight = '600';
+    titleEl.style.fontSize = el('titleSize').value + 'px';
+
+    var taglineText = el('taglineText').value;
+    var taglineEl = el('taglinePreview');
+    taglineEl.textContent = taglineText;
+    taglineEl.style.display = taglineText.trim() ? 'block' : 'none';
+    taglineEl.style.color = el('taglineColor').value;
+    taglineEl.style.fontFamily = '"' + el('taglineFont').value + '", ' + (FONT_FALLBACK[el('taglineFont').value] || 'sans-serif');
+    taglineEl.style.fontSize = el('taglineSize').value + 'px';
+
+    var sheet = el('previewSheet');
+    sheet.style.background = el('sheetBg').value;
+    sheet.style.padding = el('sheetPadding').value + 'px';
+
+    el('logoLevelHint').hidden = !(logoEnabled && (el('qrLevel').value === 'L' || el('qrLevel').value === 'M'));
+
+    syncReadouts();
+    syncSwatchLabels();
+  }
+
+  /* ---------- export ---------- */
+
   function buildExportCanvas(){
     var scale = 2;
     var qrCanvas = el('qrCanvas');
@@ -620,18 +699,7 @@
     var titleFontSpec = '600 ' + titleSize + 'px "' + titleFont + '", ' + (FONT_FALLBACK[titleFont] || 'sans-serif');
     var taglineFontSpec = '400 ' + taglineSize + 'px "' + taglineFont + '", ' + (FONT_FALLBACK[taglineFont] || 'sans-serif');
 
-    var fontsReady;
-    try{
-      fontsReady = Promise.all([
-        document.fonts.load(titleFontSpec),
-        document.fonts.load(taglineFontSpec),
-        document.fonts.ready
-      ]);
-    }catch(e){
-      fontsReady = Promise.resolve();
-    }
-
-    return fontsReady.catch(function(){}).then(function(){
+    return loadFonts([titleFontSpec, taglineFontSpec]).then(function(){
       var measure = document.createElement('canvas').getContext('2d');
       var maxTextWidth = Math.max(qrSize * 1.7, 360);
 
@@ -766,6 +834,67 @@
     });
   }
 
+  /* ---------- events ---------- */
+
+  function bindEvents(){
+    FIELD_IDS.forEach(function(id){
+      var node = el(id);
+      node.addEventListener('input', render);
+      node.addEventListener('change', render);
+    });
+
+    el('logoInput').addEventListener('change', function(e){
+      var file = e.target.files && e.target.files[0];
+      if(!file) return;
+      var reader = new FileReader();
+      reader.onload = function(ev){
+        var img = new Image();
+        img.onload = function(){
+          logoImage = img;
+          logoEnabled = true;
+          el('logoControls').hidden = false;
+          var levelSel = el('qrLevel');
+          if(levelSel.value === 'L' || levelSel.value === 'M'){
+            levelSel.value = 'Q';
+          }
+          render();
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    el('logoRemove').addEventListener('click', function(){
+      logoImage = null;
+      logoEnabled = false;
+      el('logoInput').value = '';
+      el('logoControls').hidden = true;
+      render();
+    });
+
+    el('resetBtn').addEventListener('click', function(){
+      applyDefaultsToForm();
+      logoImage = null;
+      logoEnabled = false;
+      el('logoInput').value = '';
+      el('logoControls').hidden = true;
+      render();
+    });
+
+    el('downloadPng').addEventListener('click', function(){ exportImage('png'); });
+    el('downloadJpg').addEventListener('click', function(){ exportImage('jpeg'); });
+    el('downloadPdf').addEventListener('click', exportPdf);
+    el('downloadHtml').addEventListener('click', exportHtmlFile);
+    el('downloadHeic').addEventListener('click', function(){ el('heicNote').hidden = false; });
+    el('heicClose').addEventListener('click', function(){ el('heicNote').hidden = true; });
+    el('heicUsePng').addEventListener('click', function(){
+      el('heicNote').hidden = true;
+      exportImage('png');
+    });
+  }
+
+  /* ---------- init ---------- */
+
   function init(){
     qr = new QRious({
       element: el('qrCanvas'),
@@ -778,6 +907,10 @@
     applyDefaultsToForm();
     bindEvents();
     render();
+
+    try{
+      document.fonts.ready.then(function(){ render(); });
+    }catch(e){ /* no-op */ }
   }
 
   document.addEventListener('DOMContentLoaded', init);
